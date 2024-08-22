@@ -1,13 +1,21 @@
-import { useState, ChangeEvent, act, FormEvent } from 'react';
+import { useState, ChangeEvent, FormEvent, Dispatch } from 'react';
 import { categories } from '../db/categories';
-import { Activity } from '../types';
+import type { Activity } from '../types';
+import { ActivityActions } from '../reducer/activityReducer';
 
-export default function Form() {
-	const [activity, setActivity] = useState<Activity>({
-		category: 1,
-		nameActivity: '',
-		calories: 0,
-	});
+type FormProps = {
+	dispatch: Dispatch<ActivityActions>;
+};
+
+const initialState = {
+	id: Math.random().toString(36).substring(7),
+	category: 1,
+	nameActivity: '',
+	calories: 0,
+};
+
+export default function Form({ dispatch }: FormProps) {
+	const [activity, setActivity] = useState<Activity>(initialState);
 
 	const handleChange = (
 		event: ChangeEvent<HTMLSelectElement> | ChangeEvent<HTMLInputElement>
@@ -15,19 +23,28 @@ export default function Form() {
 		const isNumberFiel = ['category', 'calories'].includes(event.target.id);
 		setActivity({
 			...activity,
-			[event.target.id]: isNumberFiel
-				? Number(event.target.value)
-				: event.target.value,
+			[event.target.id]: isNumberFiel ? Number(event.target.value) : event.target.value,
 		});
 	};
+
 	const isValidActivity = () => {
 		const { nameActivity, calories } = activity;
 		return nameActivity.trim() !== '' && calories > 0;
 	};
+
 	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-		console.log(activity);
+		dispatch({
+			type: 'save-activity',
+			payload: { newActivity: activity },
+		});
+
+		setActivity({
+			...initialState,
+			id: Math.random().toString(36).substring(7),
+		});
 	};
+
 	return (
 		<form
 			className='space-y-5 bg-white shadow p-10 rounded-lg'
